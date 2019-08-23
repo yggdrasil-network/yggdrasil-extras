@@ -51,7 +51,7 @@ func (m *Yggdrasil) StartAutoconfigure() error {
 	logger.EnableLevel("warn")
 	logger.EnableLevel("info")
 	nc := config.GenerateConfig()
-	nc.IfName = "dummy"
+	//nc.IfName = "dummy"
 	nc.AdminListen = "tcp://localhost:9001"
 	nc.Peers = []string{}
 	if hostname, err := os.Hostname(); err == nil {
@@ -89,7 +89,7 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 	if err := mapstructure.Decode(dat, &nc); err != nil {
 		return err
 	}
-	nc.IfName = "dummy"
+	//nc.IfName = "dummy"
 	/*if err := m.core.SetRouterAdapter(m); err != nil {
 		logger.Errorln("An error occured setting router adapter:", err)
 		return err
@@ -119,7 +119,7 @@ func (m *Yggdrasil) Stop() error {
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
 func GenerateConfigJSON() []byte {
 	nc := config.GenerateConfig()
-	nc.IfName = "dummy"
+	//nc.IfName = "dummy"
 	if json, err := json.Marshal(nc); err == nil {
 		return json
 	}
