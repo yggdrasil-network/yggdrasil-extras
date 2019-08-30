@@ -9,6 +9,7 @@ import (
 	hjson "github.com/hjson/hjson-go"
 	"github.com/mitchellh/mapstructure"
 	"github.com/yggdrasil-network/yggdrasil-extras/src/dummy"
+	"github.com/yggdrasil-network/yggdrasil-go/src/admin"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
 	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
@@ -22,6 +23,7 @@ import (
 type Yggdrasil struct {
 	core      yggdrasil.Core
 	state     config.NodeState
+	admin     admin.AdminSocket
 	multicast multicast.Multicast
 	dummy     dummy.DummyAdapter
 	log       MobileLogger
@@ -75,6 +77,11 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 	if err != nil {
 		logger.Errorln("An error occured starting Yggdrasil:", err)
 		return nil, err
+	}
+	// Start the admin socket
+	m.admin.Init(&m.core, state, logger, nil)
+	if err := m.admin.Start(); err != nil {
+		logger.Errorln("An error occurred starting admin socket:", err)
 	}
 	// Start the multicast module
 	m.multicast.Init(&m.core, state, logger, nil)
