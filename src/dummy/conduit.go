@@ -25,7 +25,7 @@ func CreateConduitEndpoint(c *Conduit) *ConduitEndpoint {
 }
 
 func (c *ConduitEndpoint) Send(p []byte) {
-	c.send <- p
+	c.send <- append([]byte(nil), p...)
 }
 
 func (c *ConduitEndpoint) Recv() []byte {
@@ -39,7 +39,7 @@ func (c *Conduit) Write(p []byte) (n int, err error) {
 
 func (c *Conduit) Read(p []byte) (n int, err error) {
 	b := <-c.recv
-	copy(p, b)
+	copy(p[:], b)
 	return len(b), nil
 }
 
