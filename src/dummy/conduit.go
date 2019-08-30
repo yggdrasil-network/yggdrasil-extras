@@ -33,7 +33,7 @@ func (c *ConduitEndpoint) Recv() []byte {
 }
 
 func (c *Conduit) Write(p []byte) (n int, err error) {
-	c.send <- p
+	c.send <- append([]byte(nil), p...)
 	return len(p), nil
 }
 
