@@ -28,7 +28,7 @@ func (w *dummyWriter) _write(b []byte) {
 		return
 	}
 	written, err = w.dummy.Conduit.Write(b[:n])
-	util.PutBytes(b)
+	//util.PutBytes(b)
 	if err != nil {
 		w.dummy.Act(w, func() {
 			if !w.dummy.isOpen {
