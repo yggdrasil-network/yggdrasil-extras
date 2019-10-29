@@ -188,8 +188,14 @@ func (dummy *DummyAdapter) handler() error {
 			dummy.log.Errorln("Dummy connection accept error:", err)
 			return err
 		}
+		yconn, ok := conn.(*yggdrasil.Conn)
+		if !ok {
+			err = errors.New("handler: failed type assertion")
+			dummy.log.Errorln("Dummy connection accept error:", err)
+			return err
+		}
 		phony.Block(dummy, func() {
-			if _, err := dummy._wrap(conn); err != nil {
+			if _, err := dummy._wrap(yconn); err != nil {
 				// Something went wrong when storing the connection, typically that
 				// something already exists for this address or subnet
 				dummy.log.Debugln("Dummy handler wrap:", err)
@@ -207,9 +213,13 @@ func (dummy *DummyAdapter) _wrap(conn *yggdrasil.Conn) (c *dummyConn, err error)
 	}
 	c = &s
 	// Get the remote address and subnet of the other side
-	remoteNodeID := conn.RemoteAddr()
-	s.addr = *address.AddrForNodeID(&remoteNodeID)
-	s.snet = *address.SubnetForNodeID(&remoteNodeID)
+	remoteNodeID, ok := conn.RemoteAddr().(*crypto.NodeID)
+	if !ok {
+		err = errors.New("_wrap: failed type assertion")
+		return
+	}
+	s.addr = *address.AddrForNodeID(remoteNodeID)
+	s.snet = *address.SubnetForNodeID(remoteNodeID)
 	// Work out if this is already a destination we already know about
 	atc, aok := dummy.addrToConn[s.addr]
 	stc, sok := dummy.subnetToConn[s.snet]

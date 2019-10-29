@@ -1,9 +1,12 @@
 package dummy
 
 import (
+	"errors"
+
 	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/crypto"
 	"github.com/yggdrasil-network/yggdrasil-go/src/util"
+	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
 
 	"github.com/Arceliar/phony"
 )
@@ -148,7 +151,7 @@ func (dummy *DummyAdapter) _handlePacket(bs []byte, err error) {
 		}
 		if !known {
 			go func() {
-				conn, err := dummy.dialer.DialByNodeIDandMask(dstNodeID, dstNodeIDMask)
+				conn, err := dummy.dialer.DialByNodeIDandMask(nil, dstNodeID, dstNodeIDMask)
 				dummy.Act(nil, func() {
 					packets := dummy.dials[*dstNodeID]
 					delete(dummy.dials, *dstNodeID)
@@ -157,7 +160,12 @@ func (dummy *DummyAdapter) _handlePacket(bs []byte, err error) {
 					}
 					// We've been given a connection so prepare the session wrapper
 					var tc *dummyConn
-					if tc, err = dummy._wrap(conn); err != nil {
+					yconn, ok := conn.(*yggdrasil.Conn)
+					if !ok {
+						err = errors.New("_handlePacket: failed type assertion")
+						return
+					}
+					if tc, err = dummy._wrap(yconn); err != nil {
 						// Something went wrong when storing the connection, typically that
 						// something already exists for this address or subnet
 						dummy.log.Debugln("Dummy iface wrap:", err)
