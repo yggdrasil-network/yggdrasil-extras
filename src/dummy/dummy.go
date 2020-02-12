@@ -44,8 +44,8 @@ type DummyAdapter struct {
 // Gets the maximum supported MTU for the platform based on the defaults in
 // defaults.GetDefaults().
 func getSupportedMTU(mtu int) int {
-	if mtu > defaults.GetDefaults().MaximumIfMTU {
-		return defaults.GetDefaults().MaximumIfMTU
+	if mtu > int(defaults.GetDefaults().MaximumIfMTU) {
+		return int(defaults.GetDefaults().MaximumIfMTU)
 	}
 	return mtu
 }
@@ -77,7 +77,7 @@ func DefaultName() string {
 // DefaultMTU gets the default Dummy interface MTU for your platform. This can
 // be as high as MaximumMTU(), depending on platform, but is never lower than 1280.
 func DefaultMTU() int {
-	return defaults.GetDefaults().DefaultIfMTU
+	return int(defaults.GetDefaults().DefaultIfMTU)
 }
 
 // DefaultIsTAP returns true if the default adapter mode for the current
@@ -90,7 +90,7 @@ func DefaultIsTAP() bool {
 // platform. This can be as high as 65535, depending on platform, but is never
 // lower than 1280.
 func MaximumMTU() int {
-	return defaults.GetDefaults().MaximumIfMTU
+	return int(defaults.GetDefaults().MaximumIfMTU)
 }
 
 // Init initialises the Dummy module. You must have acquired a Listener from
