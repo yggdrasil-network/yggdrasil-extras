@@ -153,3 +153,19 @@ func (m *Yggdrasil) GetSigPubKeyString() string {
 func (m *Yggdrasil) GetCoordsString() string {
 	return fmt.Sprintf("%v", m.core.Coords())
 }
+
+func (m *Yggdrasil) GetPeersJSON() (result string) {
+	if res, err := json.Marshal(m.core.GetPeers()); err == nil {
+		return string(res)
+	} else {
+		return "{}"
+	}
+}
+
+func (m *Yggdrasil) GetSwitchPeersJSON() string {
+	if res, err := json.Marshal(m.core.GetSwitchPeers()); err == nil {
+		return string(res)
+	} else {
+		return "{}"
+	}
+}
