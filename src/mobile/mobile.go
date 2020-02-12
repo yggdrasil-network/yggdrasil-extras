@@ -2,6 +2,7 @@ package mobile
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/gologme/log"
@@ -147,4 +148,8 @@ func (m *Yggdrasil) GetBoxPubKeyString() string {
 // GetSigPubKeyString gets the node's public signing key
 func (m *Yggdrasil) GetSigPubKeyString() string {
 	return m.core.SigningPublicKey()
+}
+
+func (m *Yggdrasil) GetCoordsString() string {
+	return fmt.Sprintf("%v", m.core.Coords())
 }
