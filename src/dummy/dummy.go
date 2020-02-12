@@ -131,7 +131,7 @@ func (dummy *DummyAdapter) _start() error {
 	nodeID := crypto.GetNodeID(&boxPub)
 	dummy.addr = *address.AddrForNodeID(nodeID)
 	dummy.subnet = *address.SubnetForNodeID(nodeID)
-	dummy.mtu = current.IfMTU
+	dummy.mtu = int(current.IfMTU)
 	dummy.isOpen = true
 	dummy.reconfigure = make(chan chan error)
 	go func() {
