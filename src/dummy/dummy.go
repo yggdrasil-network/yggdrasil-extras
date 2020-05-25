@@ -213,11 +213,12 @@ func (dummy *DummyAdapter) _wrap(conn *yggdrasil.Conn) (c *dummyConn, err error)
 	}
 	c = &s
 	// Get the remote address and subnet of the other side
-	remoteNodeID, ok := conn.RemoteAddr().(*crypto.NodeID)
+	remotePubKey, ok := conn.RemoteAddr().(*crypto.BoxPubKey)
 	if !ok {
 		err = errors.New("_wrap: failed type assertion")
 		return
 	}
+	remoteNodeID := crypto.GetNodeID(remotePubKey)
 	s.addr = *address.AddrForNodeID(remoteNodeID)
 	s.snet = *address.SubnetForNodeID(remoteNodeID)
 	// Work out if this is already a destination we already know about
