@@ -115,9 +115,6 @@ func (m *Yggdrasil) Stop() error {
 	m.multicast.Stop()
 	m.admin.Stop()
 	m.core.Stop()
-	if err := nil; err != nil {
-		return err
-	}
 	return nil
 }
 
