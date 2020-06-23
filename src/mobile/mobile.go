@@ -111,6 +111,7 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 
 // Stop the mobile Yggdrasil instance
 func (m *Yggdrasil) Stop() {
+	logger := log.New(m.log, "", 0)
 	//m.admin.Stop()
 	//m.core.Stop()
 	logger.Infoln("exitting...1")
