@@ -9,7 +9,7 @@ import (
 
 	hjson "github.com/hjson/hjson-go"
 	"github.com/mitchellh/mapstructure"
-	"github.com/yggdrasil-network/yggdrasil-extras/src/dummy"
+	"github.com/vikulin/yggdrasil-extras/src/dummy"
 	"github.com/yggdrasil-network/yggdrasil-go/src/admin"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
@@ -110,9 +110,8 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 }
 
 // Stop the mobile Yggdrasil instance
-func (m *Yggdrasil) Stop() error {
+func (m *Yggdrasil) Stop() {
 	m.core.Stop()
-	return nil
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
