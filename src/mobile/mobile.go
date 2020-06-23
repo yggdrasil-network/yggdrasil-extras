@@ -114,7 +114,9 @@ func (m *Yggdrasil) Stop() {
 	//m.admin.Stop()
 	//m.core.Stop()
 	m.Stop()
+	logger.Infoln("exitting...")
 	os.Exit(0)
+	logger.Infoln("exit done")
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
