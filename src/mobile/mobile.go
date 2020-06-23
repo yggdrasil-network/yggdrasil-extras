@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
+	"os"
 	"github.com/gologme/log"
 
 	hjson "github.com/hjson/hjson-go"
@@ -114,6 +114,7 @@ func (m *Yggdrasil) Stop() {
 	//m.admin.Stop()
 	//m.core.Stop()
 	m.Stop()
+	os.Exit(0)
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
