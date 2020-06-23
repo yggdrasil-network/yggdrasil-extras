@@ -110,9 +110,12 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 }
 
 // Stop the mobile Yggdrasil instance
-func (m *Yggdrasil) Stop() {
+func (m *Yggdrasil) Stop() error {
 	m.core.Stop()
-	return
+	if err := m.Stop(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
