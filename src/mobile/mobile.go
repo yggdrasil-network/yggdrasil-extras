@@ -113,8 +113,9 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 func (m *Yggdrasil) Stop() {
 	//m.admin.Stop()
 	//m.core.Stop()
+	logger.Infoln("exitting...1")
 	m.Stop()
-	logger.Infoln("exitting...")
+	logger.Infoln("exitting...2")
 	os.Exit(0)
 	logger.Infoln("exit done")
 }
