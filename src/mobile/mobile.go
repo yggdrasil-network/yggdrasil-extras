@@ -111,8 +111,10 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 
 // Stop the mobile Yggdrasil instance
 func (m *Yggdrasil) Stop() error {
-	m.core.Stop()
+	m.dummy.Stop()
+	m.multicast.Stop()
 	m.admin.Stop()
+	m.core.Stop()
 	if err := nil; err != nil {
 		return err
 	}
