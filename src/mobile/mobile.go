@@ -9,7 +9,7 @@ import (
 
 	hjson "github.com/hjson/hjson-go"
 	"github.com/mitchellh/mapstructure"
-	"github.com/vikulin/yggdrasil-extras/src/dummy"
+	"github.com/yggdrasil-network/yggdrasil-extras/src/dummy"
 	"github.com/yggdrasil-network/yggdrasil-go/src/admin"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
