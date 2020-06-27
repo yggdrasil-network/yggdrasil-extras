@@ -111,12 +111,12 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 // Stop the mobile Yggdrasil instance
 func (m *Yggdrasil) Stop() {
 	logger := log.New(m.log, "", 0)
-	logger.EnableLevel("debug")
-	logger.Debugln("Stop the mobile Yggdrasil instance")
-	m.multicast.Stop()
+	logger.EnableLevel("info")
+	logger.Infof("Stop the mobile Yggdrasil instance %s", "")
 	m.admin.Stop()
+	m.multicast.Stop()
+	m.tuntap.Stop()
 	m.core.Stop()
-	m.dummy.Stop()
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
