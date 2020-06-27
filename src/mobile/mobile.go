@@ -9,10 +9,10 @@ import (
 	hjson "github.com/hjson/hjson-go"
 	"github.com/mitchellh/mapstructure"
 	"github.com/vikulin/yggdrasil-extras/src/dummy"
-	"github.com/yggdrasil-network/yggdrasil-go/src/admin"
-	"github.com/yggdrasil-network/yggdrasil-go/src/config"
-	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
-	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
+	"github.com/vikulin/yggdrasil-go/src/admin"
+	"github.com/vikulin/yggdrasil-go/src/config"
+	"github.com/vikulin/yggdrasil-go/src/multicast"
+	"github.com/vikulin/yggdrasil-go/src/yggdrasil"
 )
 
 // Yggdrasil mobile package is meant to "plug the gap" for mobile support, as
