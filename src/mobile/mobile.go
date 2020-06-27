@@ -110,6 +110,9 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 
 // Stop the mobile Yggdrasil instance
 func (m *Yggdrasil) Stop() {
+	logger := log.New(m.log, "", 0)
+	logger.EnableLevel("debug")
+	logger.Debugln("Stop the mobile Yggdrasil instance")
 	m.multicast.Stop()
 	m.admin.Stop()
 	m.core.Stop()
