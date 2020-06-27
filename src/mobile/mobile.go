@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"os"
 	"github.com/gologme/log"
 
 	hjson "github.com/hjson/hjson-go"
