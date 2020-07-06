@@ -113,9 +113,9 @@ func (m *Yggdrasil) Stop() {
 	logger := log.New(m.log, "", 0)
 	logger.EnableLevel("info")
 	logger.Infof("Stop the mobile Yggdrasil instance %s", "")
-	m.admin.Stop()
-	m.multicast.Stop()
-	m.dummy.Stop()
+	//m.admin.Stop()
+	//m.multicast.Stop()
+	//m.dummy.Stop()
 	m.core.Stop()
 }
 
