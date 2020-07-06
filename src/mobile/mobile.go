@@ -116,7 +116,7 @@ func (m *Yggdrasil) Stop() {
 	m.admin.Stop()
 	//m.multicast.Stop()
 	//m.dummy.Stop()
-	m.core.Stop()
+	//m.core.Stop()
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
