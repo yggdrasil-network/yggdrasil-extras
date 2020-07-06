@@ -78,11 +78,12 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 		logger.Errorln("An error occured starting Yggdrasil:", err)
 		return nil, err
 	}
-	// Start the admin socket
-	m.admin.Init(&m.core, state, logger, nil)
-	if err := m.admin.Start(); err != nil {
-		logger.Errorln("An error occurred starting admin socket:", err)
-	}
+//	Start the admin socket
+//	disabled admin module due to https://github.com/yggdrasil-network/yggdrasil-go/issues/720
+//	m.admin.Init(&m.core, state, logger, nil)
+//	if err := m.admin.Start(); err != nil {
+//		logger.Errorln("An error occurred starting admin socket:", err)
+//	}
 	// Start the multicast module
 	m.multicast.Init(&m.core, state, logger, nil)
 	if err := m.multicast.Start(); err != nil {
