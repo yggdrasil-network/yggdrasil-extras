@@ -140,7 +140,7 @@ func (dummy *DummyAdapter) _start() error {
 			e <- nil
 		}
 	}()
-	go dummy.handler()
+	go dummy.handler()                        // nolint:errcheck
 	dummy.reader.Act(nil, dummy.reader._read) // Start the reader
 	/*
 			  dummy.icmpv6.Init(dummy)
@@ -240,7 +240,7 @@ func (dummy *DummyAdapter) _wrap(conn *yggdrasil.Conn) (c *dummyConn, err error)
 	// Set the read callback and start the timeout
 	conn.SetReadCallback(func(bs []byte) {
 		s.Act(conn, func() {
-			s._read(bs)
+			_ = s._read(bs)
 		})
 	})
 	s.Act(nil, s.stillAlive)

@@ -1,7 +1,5 @@
 package dummy
 
-import "github.com/yggdrasil-network/yggdrasil-go/src/util"
-
 type Conduit struct {
 	recv chan []byte
 	send chan []byte
@@ -27,7 +25,7 @@ func CreateConduitEndpoint(c *Conduit) *ConduitEndpoint {
 }
 
 func (c *ConduitEndpoint) Send(p []byte) {
-	c.send <- append(util.GetBytes(), p...)
+	c.send <- append([]byte{}, p...)
 }
 
 func (c *ConduitEndpoint) Recv() []byte {

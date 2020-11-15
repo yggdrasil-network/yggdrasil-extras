@@ -1,11 +1,11 @@
 package dummy
 
 import (
+	"context"
 	"errors"
 
 	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/crypto"
-	"github.com/yggdrasil-network/yggdrasil-go/src/util"
 	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
 
 	"github.com/Arceliar/phony"
@@ -51,12 +51,10 @@ type dummyReader struct {
 
 func (r *dummyReader) _read() {
 	// Get a slice to store the packet in
-	recvd := util.ResizeBytes(util.GetBytes(), 65535)
+	recvd := [65535]byte{}
 	// Wait for a packet to be delivered to us through the Dummy adapter
-	n, err := r.dummy.Conduit.Read(recvd)
-	if n == 0 {
-		util.PutBytes(recvd)
-	} else {
+	n, err := r.dummy.Conduit.Read(recvd[:])
+	if n != 0 {
 		r.dummy.handlePacketFrom(r, recvd[:n], err)
 	}
 	if err == nil {
@@ -146,12 +144,11 @@ func (dummy *DummyAdapter) _handlePacket(bs []byte, err error) {
 		_, known := dummy.dials[*dstNodeID]
 		dummy.dials[*dstNodeID] = append(dummy.dials[*dstNodeID], bs)
 		for len(dummy.dials[*dstNodeID]) > 32 {
-			util.PutBytes(dummy.dials[*dstNodeID][0])
 			dummy.dials[*dstNodeID] = dummy.dials[*dstNodeID][1:]
 		}
 		if !known {
 			go func() {
-				conn, err := dummy.dialer.DialByNodeIDandMask(nil, dstNodeID, dstNodeIDMask)
+				conn, err := dummy.dialer.DialByNodeIDandMask(context.TODO(), dstNodeID, dstNodeIDMask)
 				dummy.Act(nil, func() {
 					packets := dummy.dials[*dstNodeID]
 					delete(dummy.dials, *dstNodeID)
@@ -175,7 +172,6 @@ func (dummy *DummyAdapter) _handlePacket(bs []byte, err error) {
 						tc.writeFrom(nil, packet)
 					}
 				})
-				return
 			}()
 		}
 	}

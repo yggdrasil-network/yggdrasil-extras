@@ -33,7 +33,7 @@ func (s *dummyConn) _close_from_dummy() {
 	delete(s.dummy.addrToConn, s.addr)
 	delete(s.dummy.subnetToConn, s.snet)
 	func() {
-		defer func() { recover() }()
+		defer func() { _ = recover() }()
 		close(s.stop) // Closes reader/writer goroutines
 	}()
 }
@@ -42,13 +42,11 @@ func (s *dummyConn) _read(bs []byte) (err error) {
 	select {
 	case <-s.stop:
 		err = errors.New("session was already closed")
-		util.PutBytes(bs)
 		return
 	default:
 	}
 	if len(bs) == 0 {
 		err = errors.New("read packet with 0 size")
-		util.PutBytes(bs)
 		return
 	}
 	// ipv4 := len(bs) > 20 && bs[0]&0xf0 == 0x40
@@ -77,7 +75,6 @@ func (s *dummyConn) _read(bs []byte) (err error) {
 	}
 	if skip {
 		err = errors.New("address not allowed")
-		util.PutBytes(bs)
 		return
 	}
 	s.dummy.writer.writeFrom(s, bs)
@@ -87,7 +84,7 @@ func (s *dummyConn) _read(bs []byte) (err error) {
 
 func (s *dummyConn) writeFrom(from phony.Actor, bs []byte) {
 	s.Act(from, func() {
-		s._write(bs)
+		_ = s._write(bs)
 	})
 }
 
@@ -95,7 +92,6 @@ func (s *dummyConn) _write(bs []byte) (err error) {
 	select {
 	case <-s.stop:
 		err = errors.New("session was already closed")
-		util.PutBytes(bs)
 		return
 	default:
 	}
@@ -125,7 +121,6 @@ func (s *dummyConn) _write(bs []byte) (err error) {
 	}
 	if skip {
 		err = errors.New("address not allowed")
-		util.PutBytes(bs)
 		return
 	}
 	msg := yggdrasil.FlowKeyMessage{
