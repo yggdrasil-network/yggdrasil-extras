@@ -6,7 +6,10 @@ import (
 
 	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/crypto"
+	"github.com/yggdrasil-network/yggdrasil-go/src/tuntap"
 	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
+	"golang.org/x/net/icmp"
+	"golang.org/x/net/ipv6"
 
 	"github.com/Arceliar/phony"
 )
@@ -117,6 +120,16 @@ func (dummy *DummyAdapter) _handlePacket(bs []byte, err error) {
 	}
 	if addrlen != 16 || (!dstAddr.IsValid() && !dstSnet.IsValid()) {
 		// Couldn't find this node's ygg IP
+		dlen := len(bs)
+		if dlen > 900 {
+			dlen = 900
+		}
+		ptb := &icmp.DstUnreach{
+			Data: bs[:dlen],
+		}
+		if packet, err := tuntap.CreateICMPv6(bs[8:24], bs[24:40], ipv6.ICMPTypeDestinationUnreachable, 0, ptb); err == nil {
+			dummy.writer.writeFrom(nil, packet)
+		}
 		return
 	}
 	// Do we have an active connection for this node address?
