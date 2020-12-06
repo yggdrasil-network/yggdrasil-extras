@@ -6,7 +6,6 @@ import (
 
 	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/crypto"
-	"github.com/yggdrasil-network/yggdrasil-go/src/tuntap"
 	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv6"
@@ -127,7 +126,7 @@ func (dummy *DummyAdapter) _handlePacket(bs []byte, err error) {
 		ptb := &icmp.DstUnreach{
 			Data: bs[:dlen],
 		}
-		if packet, err := tuntap.CreateICMPv6(bs[8:24], bs[24:40], ipv6.ICMPTypeDestinationUnreachable, 0, ptb); err == nil {
+		if packet, err := CreateICMPv6(bs[8:24], bs[24:40], ipv6.ICMPTypeDestinationUnreachable, 0, ptb); err == nil {
 			dummy.writer.writeFrom(nil, packet)
 		}
 		return
