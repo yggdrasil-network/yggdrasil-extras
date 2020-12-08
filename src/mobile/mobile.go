@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
 	"github.com/gologme/log"
 
 	hjson "github.com/hjson/hjson-go"
@@ -79,11 +78,12 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 		logger.Errorln("An error occured starting Yggdrasil:", err)
 		return nil, err
 	}
-	// Start the admin socket
-	m.admin.Init(&m.core, state, logger, nil)
-	if err := m.admin.Start(); err != nil {
-		logger.Errorln("An error occurred starting admin socket:", err)
-	}
+//	Start the admin socket
+//	disabled admin module due to https://github.com/yggdrasil-network/yggdrasil-go/issues/720
+//	m.admin.Init(&m.core, state, logger, nil)
+//	if err := m.admin.Start(); err != nil {
+//		logger.Errorln("An error occurred starting admin socket:", err)
+//	}
 	// Start the multicast module
 	m.multicast.Init(&m.core, state, logger, nil)
 	if err := m.multicast.Start(); err != nil {
@@ -110,12 +110,14 @@ func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint
 }
 
 // Stop the mobile Yggdrasil instance
-func (m *Yggdrasil) Stop() error {
+func (m *Yggdrasil) Stop() {
+	logger := log.New(m.log, "", 0)
+	logger.EnableLevel("info")
+	logger.Infof("Stop the mobile Yggdrasil instance %s", "")
+	//m.admin.Stop()
+	m.multicast.Stop()
+	//m.dummy.Stop()
 	m.core.Stop()
-	if err := m.Stop(); err != nil {
-		return err
-	}
-	return nil
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
