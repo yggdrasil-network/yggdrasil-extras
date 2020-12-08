@@ -152,8 +152,8 @@ func (dummy *DummyAdapter) _start() error {
 	return nil
 }
 
-
-
+// Start the setup process for the Dummy adapter. If successful, starts the
+// read/write goroutines to handle packets on that interface.
 func (dummy *DummyAdapter) Stop() error {
 	var err error
 	phony.Block(dummy, func() {
