@@ -130,10 +130,10 @@ func (m *Yggdrasil) GetCoordsString() string {
 }
 
 func (m *Yggdrasil) GetPeersJSON() (result string) {
-	var peers []struct {
+	peers := []struct {
 		core.Peer
 		IP string
-	}
+	}{}
 	for _, v := range m.core.GetPeers() {
 		a := address.AddrForKey(v.Key)
 		ip := net.IP(a[:]).String()
