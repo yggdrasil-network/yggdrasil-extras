@@ -4,14 +4,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net"
 
 	"github.com/gologme/log"
 
 	hjson "github.com/hjson/hjson-go"
 	"github.com/mitchellh/mapstructure"
+	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/core"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
+	"github.com/yggdrasil-network/yggdrasil-go/src/version"
 
 	_ "golang.org/x/mobile/bind"
 )
@@ -97,7 +100,7 @@ func (m *Yggdrasil) Stop() error {
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
 func GenerateConfigJSON() []byte {
 	nc := config.GenerateConfig()
-	nc.IfName = "dummy"
+	nc.IfName = "none"
 	if json, err := json.Marshal(nc); err == nil {
 		return json
 	}
@@ -127,9 +130,36 @@ func (m *Yggdrasil) GetCoordsString() string {
 }
 
 func (m *Yggdrasil) GetPeersJSON() (result string) {
-	if res, err := json.Marshal(m.core.GetPeers()); err == nil {
+	var peers []struct {
+		core.Peer
+		IP string
+	}
+	for _, v := range m.core.GetPeers() {
+		a := address.AddrForKey(v.Key)
+		ip := net.IP(a[:]).String()
+		peers = append(peers, struct {
+			core.Peer
+			IP string
+		}{
+			Peer: v,
+			IP:   ip,
+		})
+	}
+	if res, err := json.Marshal(peers); err == nil {
 		return string(res)
 	} else {
 		return "{}"
 	}
+}
+
+func (m *Yggdrasil) GetDHTJSON() (result string) {
+	if res, err := json.Marshal(m.core.GetDHT()); err == nil {
+		return string(res)
+	} else {
+		return "{}"
+	}
+}
+
+func GetVersion() string {
+	return version.BuildVersion()
 }
