@@ -1,3 +1,5 @@
+// +build !android,!ios
+
 package mobile
 
 import "fmt"
