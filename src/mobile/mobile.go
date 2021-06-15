@@ -160,6 +160,11 @@ func (m *Yggdrasil) GetDHTJSON() (result string) {
 	}
 }
 
+// GetMTU returns the configured node MTU. This must be called AFTER Start.
+func (m *Yggdrasil) GetMTU() int {
+	return int(m.core.MTU())
+}
+
 func GetVersion() string {
 	return version.BuildVersion()
 }
