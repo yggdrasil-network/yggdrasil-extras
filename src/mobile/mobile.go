@@ -56,6 +56,7 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 		logger.Errorln("An error occured starting Yggdrasil:", err)
 		return err
 	}
+	m.core.SetMTU(m.config.IfMTU)
 	if err := m.multicast.Init(&m.core, &m.config, logger, nil); err != nil {
 		logger.Errorln("An error occurred initialising multicast:", err)
 		return err
