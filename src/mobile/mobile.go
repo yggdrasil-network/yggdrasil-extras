@@ -56,7 +56,7 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 		logger.Errorln("An error occured starting Yggdrasil:", err)
 		return err
 	}
-	mtu := tun.config.IfMTU
+	mtu := m.config.IfMTU
 	if m.core.MaxMTU() < mtu {
 		mtu = m.core.MaxMTU()
 	}
