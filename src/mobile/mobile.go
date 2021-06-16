@@ -61,13 +61,15 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 		mtu = m.core.MaxMTU()
 	}
 	m.core.SetMTU(mtu)
-	if err := m.multicast.Init(&m.core, &m.config, logger, nil); err != nil {
-		logger.Errorln("An error occurred initialising multicast:", err)
-		return err
-	}
-	if err := m.multicast.Start(); err != nil {
-		logger.Errorln("An error occurred starting multicast:", err)
-		return err
+	if len(m.config.MulticastInterfaces) > 0 {
+		if err := m.multicast.Init(&m.core, &m.config, logger, nil); err != nil {
+			logger.Errorln("An error occurred initialising multicast:", err)
+			return err
+		}
+		if err := m.multicast.Start(); err != nil {
+			logger.Errorln("An error occurred starting multicast:", err)
+			return err
+		}
 	}
 	return nil
 }
@@ -75,18 +77,18 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 // Send sends a packet to Yggdrasil. It should be a fully formed
 // IPv6 packet
 func (m *Yggdrasil) Send(p []byte) error {
-	_, err := m.core.Write(p)
-	return err
+	_, _ = m.core.Write(p)
+	return nil
 }
 
 // Recv waits for and reads a packet coming from Yggdrasil. It
 // will be a fully formed IPv6 packet
 func (m *Yggdrasil) Recv() ([]byte, error) {
 	var buf [65535]byte
-	n, err := m.core.Read(buf[:])
-	if err != nil {
-		return nil, err
-	}
+	n, _ := m.core.Read(buf[:])
+	//if err != nil {
+	//	return nil, err
+	//}
 	return buf[:n], nil
 }
 
