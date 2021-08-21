@@ -1,4 +1,4 @@
-// +build darwin
+// +build ios
 
 package mobile
 

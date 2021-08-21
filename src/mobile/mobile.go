@@ -1,18 +1,23 @@
 package mobile
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"time"
+	"net"
+
 	"github.com/gologme/log"
 
 	hjson "github.com/hjson/hjson-go"
 	"github.com/mitchellh/mapstructure"
-	"github.com/yggdrasil-network/yggdrasil-extras/src/dummy"
-	"github.com/yggdrasil-network/yggdrasil-go/src/admin"
+	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
+	"github.com/yggdrasil-network/yggdrasil-go/src/core"
+	"github.com/yggdrasil-network/yggdrasil-go/src/defaults"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
-	"github.com/yggdrasil-network/yggdrasil-go/src/yggdrasil"
+	"github.com/yggdrasil-network/yggdrasil-go/src/version"
+
+	_ "golang.org/x/mobile/bind"
 )
 
 // Yggdrasil mobile package is meant to "plug the gap" for mobile support, as
@@ -21,109 +26,89 @@ import (
 // functions. Note that in the case of iOS we handle reading/writing to/from TUN
 // in Swift therefore we use the "dummy" TUN interface instead.
 type Yggdrasil struct {
-	core      yggdrasil.Core
-	state     config.NodeState
-	admin     admin.AdminSocket
+	core      core.Core
+	config    config.NodeConfig
 	multicast multicast.Multicast
-	dummy     dummy.DummyAdapter
 	log       MobileLogger
 }
 
-func (m *Yggdrasil) addStaticPeers(cfg *config.NodeConfig) {
-	if len(cfg.Peers) == 0 && len(cfg.InterfacePeers) == 0 {
-		return
-	}
-	for {
-		for _, peer := range cfg.Peers {
-			m.core.AddPeer(peer, "")
-			time.Sleep(time.Second)
-		}
-		for intf, intfpeers := range cfg.InterfacePeers {
-			for _, peer := range intfpeers {
-				m.core.AddPeer(peer, intf)
-				time.Sleep(time.Second)
-			}
-		}
-		time.Sleep(time.Minute)
-	}
-}
-
 // StartAutoconfigure starts a node with a randomly generated config
-func (m *Yggdrasil) StartAutoconfigure() (*dummy.ConduitEndpoint, error) {
+func (m *Yggdrasil) StartAutoconfigure() error {
 	return m.StartJSON([]byte("{}"))
 }
 
 // StartJSON starts a node with the given JSON config. You can get JSON config
 // (rather than HJSON) by using the GenerateConfigJSON() function
-func (m *Yggdrasil) StartJSON(configjson []byte) (conduit *dummy.ConduitEndpoint, err error) {
+func (m *Yggdrasil) StartJSON(configjson []byte) error {
 	logger := log.New(m.log, "", 0)
 	logger.EnableLevel("error")
 	logger.EnableLevel("warn")
 	logger.EnableLevel("info")
-	logger.EnableLevel("debug")
-	logger.EnableLevel("trace")
-	m.state.Current = *config.GenerateConfig()
+	m.config = *defaults.GenerateConfig()
 	var dat map[string]interface{}
 	if err := hjson.Unmarshal(configjson, &dat); err != nil {
-		return nil, err
+		return err
 	}
-	if err := mapstructure.Decode(dat, &m.state.Current); err != nil {
-		return nil, err
+	if err := mapstructure.Decode(dat, &m.config); err != nil {
+		return err
 	}
-	m.state.Current.IfName = "dummy"
-	m.state.Previous = m.state.Current
-	// Start Yggdrasil
-	state, err := m.core.Start(&m.state.Current, logger)
-	if err != nil {
+	m.config.IfName = "none"
+	if err := m.core.Start(&m.config, logger); err != nil {
 		logger.Errorln("An error occured starting Yggdrasil:", err)
-		return nil, err
+		return err
 	}
-//	Start the admin socket
-//	disabled admin module due to https://github.com/yggdrasil-network/yggdrasil-go/issues/720
-//	m.admin.Init(&m.core, state, logger, nil)
-//	if err := m.admin.Start(); err != nil {
-//		logger.Errorln("An error occurred starting admin socket:", err)
-//	}
-	// Start the multicast module
-	m.multicast.Init(&m.core, state, logger, nil)
-	if err := m.multicast.Start(); err != nil {
-		logger.Errorln("An error occurred starting multicast:", err)
+	mtu := m.config.IfMTU
+	if m.core.MaxMTU() < mtu {
+		mtu = m.core.MaxMTU()
 	}
-	// Create the conduit for the dummy interface
-	m.dummy.Conduit = dummy.CreateConduit()
-	conduit = dummy.CreateConduitEndpoint(m.dummy.Conduit)
-	// Start the dummy interface
-	if listener, err := m.core.ConnListen(); err == nil {
-		if dialer, err := m.core.ConnDialer(); err == nil {
-			m.dummy.Init(&m.state, logger, listener, dialer)
-			if err := m.dummy.Start(); err != nil {
-				logger.Errorln("An error occurred starting dummy:", err)
-			}
-		} else {
-			logger.Errorln("Unable to get Dialer:", err)
+	m.core.SetMTU(mtu)
+	if len(m.config.MulticastInterfaces) > 0 {
+		if err := m.multicast.Init(&m.core, &m.config, logger, nil); err != nil {
+			logger.Errorln("An error occurred initialising multicast:", err)
+			return err
 		}
-	} else {
-		logger.Errorln("Unable to get Listener:", err)
+		if err := m.multicast.Start(); err != nil {
+			logger.Errorln("An error occurred starting multicast:", err)
+			return err
+		}
 	}
-	go m.addStaticPeers(&m.state.Current)
-	return
+	return nil
+}
+
+// Send sends a packet to Yggdrasil. It should be a fully formed
+// IPv6 packet
+func (m *Yggdrasil) Send(p []byte) error {
+	_, _ = m.core.Write(p)
+	return nil
+}
+
+// Recv waits for and reads a packet coming from Yggdrasil. It
+// will be a fully formed IPv6 packet
+func (m *Yggdrasil) Recv() ([]byte, error) {
+	var buf [65535]byte
+	n, _ := m.core.Read(buf[:])
+	//if err != nil {
+	//	return nil, err
+	//}
+	return buf[:n], nil
 }
 
 // Stop the mobile Yggdrasil instance
-func (m *Yggdrasil) Stop() {
+func (m *Yggdrasil) Stop() error {
 	logger := log.New(m.log, "", 0)
 	logger.EnableLevel("info")
 	logger.Infof("Stop the mobile Yggdrasil instance %s", "")
-	//m.admin.Stop()
-	m.multicast.Stop()
-	//m.dummy.Stop()
+	if err := m.multicast.Stop(); err != nil {
+		return err
+	}
 	m.core.Stop()
+	return nil
 }
 
 // GenerateConfigJSON generates mobile-friendly configuration in JSON format
 func GenerateConfigJSON() []byte {
-	nc := config.GenerateConfig()
-	nc.IfName = "dummy"
+	nc := defaults.GenerateConfig()
+	nc.IfName = "none"
 	if json, err := json.Marshal(nc); err == nil {
 		return json
 	}
@@ -142,32 +127,52 @@ func (m *Yggdrasil) GetSubnetString() string {
 	return subnet.String()
 }
 
-// GetBoxPubKeyString gets the node's public encryption key
-func (m *Yggdrasil) GetBoxPubKeyString() string {
-	return m.core.EncryptionPublicKey()
+// GetPublicKeyString gets the node's public key in hex form
+func (m *Yggdrasil) GetPublicKeyString() string {
+	return hex.EncodeToString(m.core.GetSelf().Key)
 }
 
-// GetSigPubKeyString gets the node's public signing key
-func (m *Yggdrasil) GetSigPubKeyString() string {
-	return m.core.SigningPublicKey()
-}
-
+// GetCoordsString gets the node's coordinates
 func (m *Yggdrasil) GetCoordsString() string {
-	return fmt.Sprintf("%v", m.core.Coords())
+	return fmt.Sprintf("%v", m.core.GetSelf().Coords)
 }
 
 func (m *Yggdrasil) GetPeersJSON() (result string) {
-	if res, err := json.Marshal(m.core.GetPeers()); err == nil {
+	peers := []struct {
+		core.Peer
+		IP string
+	}{}
+	for _, v := range m.core.GetPeers() {
+		a := address.AddrForKey(v.Key)
+		ip := net.IP(a[:]).String()
+		peers = append(peers, struct {
+			core.Peer
+			IP string
+		}{
+			Peer: v,
+			IP:   ip,
+		})
+	}
+	if res, err := json.Marshal(peers); err == nil {
 		return string(res)
 	} else {
 		return "{}"
 	}
 }
 
-func (m *Yggdrasil) GetSwitchPeersJSON() string {
-	if res, err := json.Marshal(m.core.GetSwitchPeers()); err == nil {
+func (m *Yggdrasil) GetDHTJSON() (result string) {
+	if res, err := json.Marshal(m.core.GetDHT()); err == nil {
 		return string(res)
 	} else {
 		return "{}"
 	}
+}
+
+// GetMTU returns the configured node MTU. This must be called AFTER Start.
+func (m *Yggdrasil) GetMTU() int {
+	return int(m.core.MTU())
+}
+
+func GetVersion() string {
+	return version.BuildVersion()
 }
