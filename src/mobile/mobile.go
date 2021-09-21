@@ -8,12 +8,11 @@ import (
 
 	"github.com/gologme/log"
 
-	hjson "github.com/hjson/hjson-go"
-	"github.com/mitchellh/mapstructure"
 	"github.com/yggdrasil-network/yggdrasil-go/src/address"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/core"
 	"github.com/yggdrasil-network/yggdrasil-go/src/defaults"
+	"github.com/yggdrasil-network/yggdrasil-go/src/ipv6rwc"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
 	"github.com/yggdrasil-network/yggdrasil-go/src/version"
 
@@ -27,7 +26,8 @@ import (
 // in Swift therefore we use the "dummy" TUN interface instead.
 type Yggdrasil struct {
 	core      core.Core
-	config    config.NodeConfig
+	iprwc     *ipv6rwc.ReadWriteCloser
+	config    *config.NodeConfig
 	multicast multicast.Multicast
 	log       MobileLogger
 }
@@ -44,26 +44,23 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 	logger.EnableLevel("error")
 	logger.EnableLevel("warn")
 	logger.EnableLevel("info")
-	m.config = *defaults.GenerateConfig()
-	var dat map[string]interface{}
-	if err := hjson.Unmarshal(configjson, &dat); err != nil {
-		return err
-	}
-	if err := mapstructure.Decode(dat, &m.config); err != nil {
+	m.config = defaults.GenerateConfig()
+	if err := json.Unmarshal(configjson, &m.config); err != nil {
 		return err
 	}
 	m.config.IfName = "none"
-	if err := m.core.Start(&m.config, logger); err != nil {
+	if err := m.core.Start(m.config, logger); err != nil {
 		logger.Errorln("An error occured starting Yggdrasil:", err)
 		return err
 	}
 	mtu := m.config.IfMTU
-	if m.core.MaxMTU() < mtu {
-		mtu = m.core.MaxMTU()
+	m.iprwc = ipv6rwc.NewReadWriteCloser(&m.core)
+	if m.iprwc.MaxMTU() < mtu {
+		mtu = m.iprwc.MaxMTU()
 	}
-	m.core.SetMTU(mtu)
+	m.iprwc.SetMTU(mtu)
 	if len(m.config.MulticastInterfaces) > 0 {
-		if err := m.multicast.Init(&m.core, &m.config, logger, nil); err != nil {
+		if err := m.multicast.Init(&m.core, m.config, logger, nil); err != nil {
 			logger.Errorln("An error occurred initialising multicast:", err)
 			return err
 		}
@@ -78,18 +75,21 @@ func (m *Yggdrasil) StartJSON(configjson []byte) error {
 // Send sends a packet to Yggdrasil. It should be a fully formed
 // IPv6 packet
 func (m *Yggdrasil) Send(p []byte) error {
-	_, _ = m.core.Write(p)
+	if m.iprwc == nil {
+		return nil
+	}
+	_, _ = m.iprwc.Write(p)
 	return nil
 }
 
 // Recv waits for and reads a packet coming from Yggdrasil. It
 // will be a fully formed IPv6 packet
 func (m *Yggdrasil) Recv() ([]byte, error) {
+	if m.iprwc == nil {
+		return nil, nil
+	}
 	var buf [65535]byte
-	n, _ := m.core.Read(buf[:])
-	//if err != nil {
-	//	return nil, err
-	//}
+	n, _ := m.iprwc.Read(buf[:])
 	return buf[:n], nil
 }
 
