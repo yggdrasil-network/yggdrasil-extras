@@ -3,7 +3,7 @@
 Generate an iOS framework with:
 
 ```
-gomobile bind -target ios -tags mobile -o Yggdrasil.framework \
+gomobile bind -target ios -tags mobile -o Yggdrasil.xcframework \
   github.com/yggdrasil-network/yggdrasil-extras/src/mobile \
   github.com/yggdrasil-network/yggdrasil-go/src/config
 ```
