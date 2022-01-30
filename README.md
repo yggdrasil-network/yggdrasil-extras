@@ -1,17 +1,8 @@
 # Yggdrasil Extras
 
-Generate an iOS framework with:
+This package is now deprecated and all resources have been moved into the main Yggdrasil repository under [`contrib/mobile`](https://github.com/yggdrasil-network/yggdrasil-go/tree/develop/contrib/mobile). Please use that from now on.
 
 ```
-gomobile bind -target ios -tags mobile -o Yggdrasil.xcframework \
-  github.com/yggdrasil-network/yggdrasil-extras/src/mobile \
-  github.com/yggdrasil-network/yggdrasil-go/src/config
-```
-
-Generate an Android AAR bundle with:
-
-```
-gomobile bind -target android -tags mobile -o yggdrasil.aar \
-  github.com/yggdrasil-network/yggdrasil-extras/src/mobile \
-  github.com/yggdrasil-network/yggdrasil-go/src/config
+cd yggdrasil-go
+./contrib/mobile/build [-i] [-a]
 ```
